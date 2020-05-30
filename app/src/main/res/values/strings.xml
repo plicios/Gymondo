@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Gymondo</string>
+    <string name="downloading_initial_data">Downloading initial data. Please wait...</string>
+    <string name="muscles_label">Muscles:</string>
+    <string name="equipment_label">Equipment:</string>
+    <string name="category_label">Category:</string>
+    <string name="name_label">Name:</string>
 </resources>
