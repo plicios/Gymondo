@@ -24,9 +24,9 @@ class ExercisesListViewModel(categories: Map<Long, CategoryDto>, muscles: Map<Lo
     }
 
     class Factory(
-        val categories: Map<Long, CategoryDto>,
-        val muscles: Map<Long, MuscleDto>,
-        val equipment: Map<Long, EquipmentDto>
+        private val categories: Map<Long, CategoryDto>,
+        private val muscles: Map<Long, MuscleDto>,
+        private val equipment: Map<Long, EquipmentDto>
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return ExercisesListViewModel(categories, muscles, equipment) as T

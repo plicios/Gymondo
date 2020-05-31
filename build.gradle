@@ -11,8 +11,8 @@ buildscript {
 
         picassoVersion = '2.71828'
 
-        workManagerVersion = '2.3.1'
-        navigationVersion = '2.2.1'
+        workManagerVersion = '2.3.4'
+        navigationVersion = '2.2.2'
 
         junitVersion = '4.13'
 

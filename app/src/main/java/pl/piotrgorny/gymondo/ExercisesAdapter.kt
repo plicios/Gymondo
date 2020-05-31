@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import pl.piotrgorny.gymondo.data.model.Exercise
 import pl.piotrgorny.gymondo.databinding.ItemExerciseBinding
 
-class ExercisesAdapter(val lifecycleOwner: LifecycleOwner) : PagedListAdapter<Exercise, ExercisesAdapter.ExerciseViewHolder>(Exercise.diffUtilCallback) {
+class ExercisesAdapter(private val lifecycleOwner: LifecycleOwner, private val eventLiveData: SingleLiveEvent<Event>) : PagedListAdapter<Exercise, ExercisesAdapter.ExerciseViewHolder>(Exercise.diffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ExerciseViewHolder(
             DataBindingUtil.inflate(
@@ -20,7 +20,7 @@ class ExercisesAdapter(val lifecycleOwner: LifecycleOwner) : PagedListAdapter<Ex
 
     override fun onBindViewHolder(holder: ExerciseViewHolder, position: Int) {
         val exercise = getItem(position)!!
-        holder.binding.viewModel = ExerciseViewModel(exercise)
+        holder.binding.viewModel = ExerciseViewModel(exercise).also { it.eventLiveData = eventLiveData }
         holder.binding.lifecycleOwner = lifecycleOwner
     }
 

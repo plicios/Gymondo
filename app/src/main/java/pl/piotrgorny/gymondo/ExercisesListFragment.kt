@@ -7,26 +7,24 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import pl.piotrgorny.gymondo.data.dto.CategoryDto
 import pl.piotrgorny.gymondo.data.dto.EquipmentDto
 import pl.piotrgorny.gymondo.data.dto.MuscleDto
 import pl.piotrgorny.gymondo.databinding.FragmentExercisesListBinding
-import java.util.*
 
 
 class ExercisesListFragment : Fragment() {
     private val viewModel by viewModels<ExercisesListViewModel>(factoryProducer = {
         ExercisesListViewModel.Factory(
-            arguments!!.getParcelableArrayList<CategoryDto>("categories")!!.map { it.id to it }.toMap(),
-            arguments!!.getParcelableArrayList<MuscleDto>("muscles")!!.map { it.id to it }.toMap(),
-            arguments!!.getParcelableArrayList<EquipmentDto>("equipment")!!.map { it.id to it }.toMap()
+            arguments!!.getParcelableArray("categories")!!.map { (it as CategoryDto).id to it }.toMap(),
+            arguments!!.getParcelableArray("muscles")!!.map { (it as MuscleDto).id to it }.toMap(),
+            arguments!!.getParcelableArray("equipment")!!.map { (it as EquipmentDto).id to it }.toMap()
         )
     })
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +33,15 @@ class ExercisesListFragment : Fragment() {
     ): View? {
         val binding = DataBindingUtil.inflate<FragmentExercisesListBinding>(inflater, R.layout.fragment_exercises_list, container, false)
         binding.viewModel = viewModel
-        val adapter = ExercisesAdapter(viewLifecycleOwner)
+
+        val eventLiveData = SingleLiveEvent<Event>()
+        eventLiveData.observe(viewLifecycleOwner) {
+            when(it){
+                is ShowExerciseDetailsEvent ->
+                    findNavController().navigate(R.id.action_exercises_list_dest_to_exercise_dest, ExerciseFragment.args(it.exercise))
+            }
+        }
+        val adapter = ExercisesAdapter(viewLifecycleOwner, eventLiveData)
         binding.exercisesListFragmentExercisesList.adapter = adapter
         binding.exercisesListFragmentExercisesList.layoutManager = LinearLayoutManager(requireContext())
         binding.exercisesListFragmentExercisesList.addItemDecoration(
@@ -44,26 +50,20 @@ class ExercisesListFragment : Fragment() {
                 DividerItemDecoration.VERTICAL
             )
         )
-        viewModel.exercises.observe(viewLifecycleOwner,
-            Observer { adapter.submitList(it) })
+        viewModel.exercises.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
         return binding.root
     }
 
     companion object{
-        fun newInstance(
-            categories: ArrayList<CategoryDto>,
-            muscles: ArrayList<MuscleDto>,
-            equipment: ArrayList<EquipmentDto>) : ExercisesListFragment {
-            val fragment = ExercisesListFragment()
-            val bundle = Bundle()
-            bundle.putParcelableArrayList("categories", categories)
-            bundle.putParcelableArrayList("muscles", muscles)
-            bundle.putParcelableArrayList("equipment", equipment)
-
-            fragment.arguments = bundle
-
-            return fragment
+        fun args(
+            categories: Array<CategoryDto>,
+            muscles: Array<MuscleDto>,
+            equipment: Array<EquipmentDto>
+        ) = Bundle().also {
+            it.putParcelableArray("categories", categories)
+            it.putParcelableArray("muscles", muscles)
+            it.putParcelableArray("equipment", equipment)
         }
     }
 }

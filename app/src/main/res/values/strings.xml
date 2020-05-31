@@ -5,4 +5,5 @@
     <string name="equipment_label">Equipment:</string>
     <string name="category_label">Category:</string>
     <string name="name_label">Name:</string>
+    <string name="description_label">Description:</string>
 </resources>

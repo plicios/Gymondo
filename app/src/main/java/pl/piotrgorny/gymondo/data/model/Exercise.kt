@@ -1,13 +1,15 @@
 package pl.piotrgorny.gymondo.data.model
 
+import android.os.Parcelable
 import androidx.recyclerview.widget.DiffUtil
+import kotlinx.android.parcel.Parcelize
 import pl.piotrgorny.gymondo.data.dto.CategoryDto
 import pl.piotrgorny.gymondo.data.dto.EquipmentDto
 import pl.piotrgorny.gymondo.data.dto.ExerciseDto
 import pl.piotrgorny.gymondo.data.dto.MuscleDto
 import timber.log.Timber
 
-
+@Parcelize
 data class Exercise(
     val id: Long,
     val category: String,
@@ -15,7 +17,7 @@ data class Exercise(
     val description: String,
     val equipment: List<String>,
     val muscles: List<String>
-) {
+) : Parcelable {
     constructor(exerciseDto: ExerciseDto, category: CategoryDto, equipment: List<EquipmentDto>, muscles: List<MuscleDto>) : this(
         exerciseDto.id,
         category.name,
