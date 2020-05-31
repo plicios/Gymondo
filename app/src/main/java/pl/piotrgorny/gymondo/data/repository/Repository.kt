@@ -2,12 +2,11 @@ package pl.piotrgorny.gymondo.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
-import pl.piotrgorny.gymondo.data.dto.CategoryDto
-import pl.piotrgorny.gymondo.data.dto.EquipmentDto
-import pl.piotrgorny.gymondo.data.dto.ImageDto
-import pl.piotrgorny.gymondo.data.dto.MuscleDto
+import pl.piotrgorny.gymondo.ShowApiErrorEvent
+import pl.piotrgorny.gymondo.data.dto.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 
 
 class Repository {
@@ -20,24 +19,31 @@ class Repository {
     }
 
     fun getImages(exerciseId: Long) : LiveData<List<ImageDto>> = liveData {
-        val response = wgerService.getImages(exerciseId)
-        if(!response.isSuccessful) {
-            emit(listOf<ImageDto>())
-            return@liveData
-        }
+        try {
+            val response = wgerService.getImages(exerciseId)
 
-        val responseBody = response.body()
-        if(responseBody == null){
-            emit(listOf<ImageDto>())
-            return@liveData
-        }
+            if(!response.isSuccessful) {
+                emit(listOf<ImageDto>())
+                return@liveData
+            }
 
-        if(responseBody.next != null) {
-            emit(listOf<ImageDto>())
-            return@liveData
-        }
+            val responseBody = response.body()
+            if(responseBody == null){
+                emit(listOf<ImageDto>())
+                return@liveData
+            }
 
-        emit(responseBody.results)
+            if(responseBody.next != null) {
+                emit(listOf<ImageDto>())
+                return@liveData
+            }
+
+            emit(responseBody.results)
+        } catch (e: java.lang.Exception){
+            Timber.e(e)
+            //TODO add try catch to all functions and pass error to Screen
+//            eventLiveData.postValue(ShowApiErrorEvent(e.localizedMessage ?: "Other error"))
+        }
     }
 
     fun getMuscles() : LiveData<Result<List<MuscleDto>>> = liveData {

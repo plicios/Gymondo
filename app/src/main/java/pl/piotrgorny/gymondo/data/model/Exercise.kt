@@ -7,7 +7,6 @@ import pl.piotrgorny.gymondo.data.dto.CategoryDto
 import pl.piotrgorny.gymondo.data.dto.EquipmentDto
 import pl.piotrgorny.gymondo.data.dto.ExerciseDto
 import pl.piotrgorny.gymondo.data.dto.MuscleDto
-import timber.log.Timber
 
 @Parcelize
 data class Exercise(
@@ -25,21 +24,7 @@ data class Exercise(
         exerciseDto.description,
         equipment.map { it.name },
         muscles.map { it.name }
-    ){
-        if(equipment.isNotEmpty()){
-            Timber.e("$id, $name")
-            equipment.forEach {
-                Timber.e(it.name)
-            }
-
-        }
-        if(muscles.isNotEmpty()){
-            Timber.e("$id, $name")
-            muscles.forEach {
-                Timber.e(it.name)
-            }
-        }
-    }
+    )
 
     companion object{
         val diffUtilCallback: DiffUtil.ItemCallback<Exercise> = object : DiffUtil.ItemCallback<Exercise>() {

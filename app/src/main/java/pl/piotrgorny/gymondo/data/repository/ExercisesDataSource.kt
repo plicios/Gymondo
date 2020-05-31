@@ -2,18 +2,21 @@ package pl.piotrgorny.gymondo.data.repository
 
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import pl.piotrgorny.gymondo.Event
+import pl.piotrgorny.gymondo.ShowApiErrorEvent
+import pl.piotrgorny.gymondo.SingleLiveEvent
 import pl.piotrgorny.gymondo.data.dto.*
 import pl.piotrgorny.gymondo.data.model.Exercise
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ExercisesDataSource(
     var categories: Map<Long, CategoryDto>,
     var muscles: Map<Long, MuscleDto>,
-    var equipment: Map<Long, EquipmentDto>
+    var equipment: Map<Long, EquipmentDto>,
+    private val eventLiveData: SingleLiveEvent<Event>
 ) : PageKeyedDataSource<Int, Exercise>() {
 
     private val wgerService by lazy {
@@ -24,7 +27,7 @@ class ExercisesDataSource(
             .create(WgerService::class.java)
     }
 
-    fun handleResponse(response: WgerApiResponse<ExerciseDto>) : List<Exercise> {
+    private fun handleResponse(response: WgerApiResponse<ExerciseDto>) : List<Exercise> {
         return response.results.map {
                 Exercise(
                     it,
@@ -35,7 +38,7 @@ class ExercisesDataSource(
             }
     }
 
-    fun getKeyFromUrl(url: String?) : Int? {
+    private fun getKeyFromUrl(url: String?) : Int? {
         return url?.split('/')?.last()?.filter { it.isDigit() }?.toInt()
     }
 
@@ -43,73 +46,57 @@ class ExercisesDataSource(
         params: LoadInitialParams<Int>,
         callback: LoadInitialCallback<Int, Exercise>
     ) {
-        val exercisesCall = wgerService.getExercises()
-        exercisesCall.enqueue(object: Callback<WgerApiResponse<ExerciseDto>>{
-            override fun onResponse(
-                call: Call<WgerApiResponse<ExerciseDto>>,
-                response: Response<WgerApiResponse<ExerciseDto>>
-            ) {
-                if(response.isSuccessful){
-                    val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
-                    val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
-                    val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
-                    callback.onResult(exercisesList, previousKey, nextKey)
-                }
+        GlobalScope.launch {
+            val response = wgerService.getExercises()
+            if(response.isSuccessful){
+                val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
+                val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
+                val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
+                callback.onResult(exercisesList, previousKey, nextKey)
+            } else {
+                eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
             }
-
-            override fun onFailure(call: Call<WgerApiResponse<ExerciseDto>>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
+        }
     }
 
     override fun loadAfter(params: LoadParams<Int>, callback: LoadCallback<Int, Exercise>) {
-        val exercisesCall = wgerService.getExercises(params.key)
-        exercisesCall.enqueue(object: Callback<WgerApiResponse<ExerciseDto>>{
-            override fun onResponse(
-                call: Call<WgerApiResponse<ExerciseDto>>,
-                response: Response<WgerApiResponse<ExerciseDto>>
-            ) {
+        GlobalScope.launch {
+            try {
+                val response = wgerService.getExercises(params.key)
                 if(response.isSuccessful){
                     val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
                     val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
                     callback.onResult(exercisesList, nextKey)
+                } else {
+                    eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
                 }
+            } catch (e: java.lang.Exception){
+                eventLiveData.postValue(ShowApiErrorEvent(e.localizedMessage ?: "Other error"))
             }
-
-            override fun onFailure(call: Call<WgerApiResponse<ExerciseDto>>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
+        }
     }
 
     override fun loadBefore(params: LoadParams<Int>, callback: LoadCallback<Int, Exercise>) {
-        val exercisesCall = wgerService.getExercises(params.key)
-        exercisesCall.enqueue(object: Callback<WgerApiResponse<ExerciseDto>>{
-            override fun onResponse(
-                call: Call<WgerApiResponse<ExerciseDto>>,
-                response: Response<WgerApiResponse<ExerciseDto>>
-            ) {
-                if(response.isSuccessful){
-                    val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
-                    val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
-                    callback.onResult(exercisesList, previousKey)
-                }
+        GlobalScope.launch {
+            val response = wgerService.getExercises(params.key)
+            if(response.isSuccessful){
+                val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
+                val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
+                callback.onResult(exercisesList, previousKey)
+            } else {
+                eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
             }
-
-            override fun onFailure(call: Call<WgerApiResponse<ExerciseDto>>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
+        }
     }
 
     class Factory(
-        var categories: Map<Long, CategoryDto>,
-        var muscles: Map<Long, MuscleDto>,
-        var equipment: Map<Long, EquipmentDto>
+        private val categories: Map<Long, CategoryDto>,
+        private val muscles: Map<Long, MuscleDto>,
+        private val equipment: Map<Long, EquipmentDto>,
+        private val eventLiveData: SingleLiveEvent<Event>
     ) : DataSource.Factory<Long, Exercise>() {
         override fun create(): DataSource<Long, Exercise> {
-            return ExercisesDataSource(categories, muscles, equipment) as DataSource<Long, Exercise>
+            return ExercisesDataSource(categories, muscles, equipment, eventLiveData) as DataSource<Long, Exercise>
         }
 
     }
