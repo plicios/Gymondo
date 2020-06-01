@@ -1,9 +1,14 @@
 <resources>
     <string name="app_name">Gymondo</string>
-    <string name="downloading_initial_data">Downloading initial data. Please wait...</string>
+    <string name="downloading_initial_data">Downloading initial data. Please wait…</string>
     <string name="muscles_label">Muscles:</string>
     <string name="equipment_label">Equipment:</string>
     <string name="category_label">Category:</string>
     <string name="name_label">Name:</string>
     <string name="description_label">Description:</string>
+    <string name="filter">Filter</string>
+    <string name="filter_dialog_title">Choose body part</string>
+    <string name="clear_filter_text">Choose body part</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="error_dialog_button_title">OK</string>
 </resources>
