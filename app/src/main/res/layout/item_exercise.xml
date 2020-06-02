@@ -95,6 +95,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:src="@drawable/ic_image"/>
+            app:srcCompat="@drawable/ic_image"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -2,8 +2,10 @@ package pl.piotrgorny.gymondo.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
-import pl.piotrgorny.gymondo.ShowApiErrorEvent
-import pl.piotrgorny.gymondo.data.dto.*
+import pl.piotrgorny.gymondo.data.dto.CategoryDto
+import pl.piotrgorny.gymondo.data.dto.EquipmentDto
+import pl.piotrgorny.gymondo.data.dto.ImageDto
+import pl.piotrgorny.gymondo.data.dto.MuscleDto
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
@@ -39,7 +41,7 @@ class Repository {
             }
 
             emit(responseBody.results)
-        } catch (e: java.lang.Exception){
+        } catch (e: Exception){
             Timber.e(e)
             //TODO add try catch to all functions and pass error to Screen
 //            eventLiveData.postValue(ShowApiErrorEvent(e.localizedMessage ?: "Other error"))

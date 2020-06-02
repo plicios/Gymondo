@@ -8,10 +8,10 @@ import retrofit2.http.Query
 interface WgerService {
 
     @GET("exercise")
-    suspend fun getExercises(@Query("page") page: Int = 1) : Response<WgerApiResponse<ExerciseDto>>
+    suspend fun getExercises(@Query("page") page: Int, @Query("limit") limit: Int) : Response<WgerApiResponse<ExerciseDto>>
 
     @GET("exercise")
-    suspend fun getExercisesWithCategoryFilter(@Query("category") categoryId: Long, @Query("page") page: Int = 1) : Response<WgerApiResponse<ExerciseDto>>
+    suspend fun getExercisesWithCategoryFilter(@Query("category") categoryId: Long, @Query("page") page: Int, @Query("limit") limit: Int) : Response<WgerApiResponse<ExerciseDto>>
 
     @GET("exercisecategory")
     suspend fun getCategories(@Query("limit") limit: Int = Int.MAX_VALUE) : Response<WgerApiResponse<CategoryDto>>

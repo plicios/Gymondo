@@ -6,9 +6,10 @@
     <string name="category_label">Category:</string>
     <string name="name_label">Name:</string>
     <string name="description_label">Description:</string>
+    <string name="search">Search</string>
     <string name="filter">Filter</string>
     <string name="filter_dialog_title">Choose body part</string>
-    <string name="clear_filter_text">Choose body part</string>
+    <string name="clear_filter_text">Clear body part filter</string>
     <string name="error_dialog_title">Error</string>
     <string name="error_dialog_button_title">OK</string>
 </resources>

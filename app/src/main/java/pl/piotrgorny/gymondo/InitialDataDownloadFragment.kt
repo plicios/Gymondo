@@ -30,15 +30,12 @@ class InitialDataDownloadFragment : Fragment() {
         val categories = repository.getCategories()
 
         val musclesDownloaded = Transformations.map(muscles) {
-            Timber.e(it.toString())
             it is Result.Success
         }
         val equipmentDownloaded = Transformations.map(equipment) {
-            Timber.e(it.toString())
             it is Result.Success
         }
         val categoriesDownloaded = Transformations.map(categories) {
-            Timber.e(it.toString())
             it is Result.Success
         }
 
@@ -67,7 +64,6 @@ class InitialDataDownloadFragment : Fragment() {
 
         dataDownloaded.observe(viewLifecycleOwner)
             { allDataDownloaded ->
-                Timber.e("dataDownloaded: $allDataDownloaded")
                 if(allDataDownloaded){
                     binding.dataDownloaded = true
                     findNavController().navigate(R.id.action_initial_data_download_dest_to_exercises_list_dest, ExercisesListFragment.args(

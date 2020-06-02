@@ -8,29 +8,30 @@ import pl.piotrgorny.gymondo.data.dto.EquipmentDto
 import pl.piotrgorny.gymondo.data.dto.MuscleDto
 import pl.piotrgorny.gymondo.data.model.Exercise
 import pl.piotrgorny.gymondo.data.repository.ExercisesDataSource
-import pl.piotrgorny.gymondo.data.repository.ExercisesFilterDataSource
 
 class ExercisesListViewModel(categories: Map<Long, CategoryDto>, muscles: Map<Long, MuscleDto>, equipment: Map<Long, EquipmentDto>, eventLiveData: SingleLiveEvent<Event>) : ViewModel() {
-    private val notFilteredExercises: LiveData<PagedList<Exercise>>
-
-    val categoryFilter = MutableLiveData<CategoryDto?>(null)
+    val categoryFilter = MutableLiveData<CategoryDto?>()
+    val nameFilter = MutableLiveData<String?>()
 
     val exercises: LiveData<PagedList<Exercise>>
 
-    init {
-        val config = PagedList.Config.Builder()
-            .setEnablePlaceholders(true)
-            .setPrefetchDistance(4)
-            .setPageSize(20)
-            .build()
-        notFilteredExercises = LivePagedListBuilder(ExercisesDataSource.Factory(categories, muscles, equipment, eventLiveData), config).build()
+    private val dataSourceFactory = ExercisesDataSource.Factory(categories, muscles, equipment, eventLiveData, null, null)
 
-        exercises = Transformations.switchMap(categoryFilter) {
-            if(it != null){
-                LivePagedListBuilder(ExercisesFilterDataSource.Factory(muscles, equipment, it, eventLiveData),20).build()
-            } else {
-                notFilteredExercises
-            }
+    init {
+        val pageSize = 20
+        val config = PagedList.Config.Builder()
+            .setPageSize(pageSize)
+            .setInitialLoadSizeHint(pageSize) //Initial page size needs to be the same as page size for because Api is queried by limit and page (data duplicated in two queries if page size is smaller then initial page size)
+            .build()
+
+        exercises = LivePagedListBuilder(dataSourceFactory, config).build()
+        categoryFilter.observeForever {
+            dataSourceFactory.categoryFilter = it
+            exercises.value?.dataSource?.invalidate()
+        }
+        nameFilter.observeForever {
+            dataSourceFactory.nameFilter = it
+            exercises.value?.dataSource?.invalidate()
         }
     }
 

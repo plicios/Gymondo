@@ -11,12 +11,15 @@ import pl.piotrgorny.gymondo.data.dto.*
 import pl.piotrgorny.gymondo.data.model.Exercise
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 
 class ExercisesDataSource(
-    var categories: Map<Long, CategoryDto>,
-    var muscles: Map<Long, MuscleDto>,
-    var equipment: Map<Long, EquipmentDto>,
-    private val eventLiveData: SingleLiveEvent<Event>
+    private val categories: Map<Long, CategoryDto>,
+    private val muscles: Map<Long, MuscleDto>,
+    private val equipment: Map<Long, EquipmentDto>,
+    private val eventLiveData: SingleLiveEvent<Event>,
+    private val nameFilter: String?,
+    private val categoryFilter: CategoryDto?
 ) : PageKeyedDataSource<Int, Exercise>() {
 
     private val wgerService by lazy {
@@ -28,7 +31,7 @@ class ExercisesDataSource(
     }
 
     private fun handleResponse(response: WgerApiResponse<ExerciseDto>) : List<Exercise> {
-        return response.results.map {
+        return response.results.filter { it.matchNameFilter(nameFilter) }.map {
                 Exercise(
                     it,
                     categories[it.category] ?: throw Exception("No category found for id: ${it.category}"),
@@ -39,7 +42,37 @@ class ExercisesDataSource(
     }
 
     private fun getKeyFromUrl(url: String?) : Int? {
-        return url?.split('/')?.last()?.filter { it.isDigit() }?.toInt()
+        val queryParameters = url?.split('?')?.last()?.split('&')
+        val pageQuery = queryParameters?.firstOrNull { it.contains("page") }
+
+        return pageQuery?.filter { it.isDigit() }?.toInt()
+    }
+
+    private suspend fun makeApiCall(page: Int, pageSize: Int) : Pair<List<Exercise>, Int?> {
+        try {
+            Timber.e("ApiCall: page:$page, limit:$pageSize, category:${categoryFilter?.id}")
+            val response = if(categoryFilter != null){
+                wgerService.getExercisesWithCategoryFilter(categoryFilter.id, page, pageSize)
+            } else {
+                wgerService.getExercises(page, pageSize)
+            }
+            return if(response.isSuccessful){
+                val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
+                val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
+                if(exercisesList.isEmpty() && nextKey != null){
+                    Timber.e("additional call")
+                    makeApiCall(nextKey, pageSize)
+                } else {
+                    Pair(exercisesList, nextKey)
+                }
+            } else {
+                throw Exception("Api call was not successful: ${response.errorBody()}")
+            }
+        } catch (e: Exception) {
+            Timber.e(e)
+            eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
+            return Pair(listOf(), null)
+        }
     }
 
     override fun loadInitial(
@@ -47,56 +80,31 @@ class ExercisesDataSource(
         callback: LoadInitialCallback<Int, Exercise>
     ) {
         GlobalScope.launch {
-            val response = wgerService.getExercises()
-            if(response.isSuccessful){
-                val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
-                val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
-                val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
-                callback.onResult(exercisesList, previousKey, nextKey)
-            } else {
-                eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
-            }
+            val listWithNextPageKey = makeApiCall(1, params.requestedLoadSize)
+            callback.onResult(listWithNextPageKey.first, null, listWithNextPageKey.second)
         }
     }
 
     override fun loadAfter(params: LoadParams<Int>, callback: LoadCallback<Int, Exercise>) {
         GlobalScope.launch {
-            try {
-                val response = wgerService.getExercises(params.key)
-                if(response.isSuccessful){
-                    val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
-                    val nextKey = response.body()?.let { getKeyFromUrl(it.next) }
-                    callback.onResult(exercisesList, nextKey)
-                } else {
-                    eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
-                }
-            } catch (e: java.lang.Exception){
-                eventLiveData.postValue(ShowApiErrorEvent(e.localizedMessage ?: "Other error"))
-            }
+            val listWithNextPageKey = makeApiCall(params.key, params.requestedLoadSize)
+            callback.onResult(listWithNextPageKey.first, listWithNextPageKey.second)
         }
     }
 
     override fun loadBefore(params: LoadParams<Int>, callback: LoadCallback<Int, Exercise>) {
-        GlobalScope.launch {
-            val response = wgerService.getExercises(params.key)
-            if(response.isSuccessful){
-                val exercisesList = response.body()?.let { handleResponse(it) } ?: listOf()
-                val previousKey = response.body()?.let { getKeyFromUrl(it.previous) }
-                callback.onResult(exercisesList, previousKey)
-            } else {
-                eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
-            }
-        }
     }
 
     class Factory(
         private val categories: Map<Long, CategoryDto>,
         private val muscles: Map<Long, MuscleDto>,
         private val equipment: Map<Long, EquipmentDto>,
-        private val eventLiveData: SingleLiveEvent<Event>
+        private val eventLiveData: SingleLiveEvent<Event>,
+        var nameFilter: String?,
+        var categoryFilter: CategoryDto?
     ) : DataSource.Factory<Long, Exercise>() {
         override fun create(): DataSource<Long, Exercise> {
-            return ExercisesDataSource(categories, muscles, equipment, eventLiveData) as DataSource<Long, Exercise>
+            return ExercisesDataSource(categories, muscles, equipment, eventLiveData, nameFilter, categoryFilter) as DataSource<Long, Exercise>
         }
 
     }

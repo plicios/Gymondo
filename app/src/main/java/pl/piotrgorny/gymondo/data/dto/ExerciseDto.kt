@@ -15,4 +15,10 @@ data class ExerciseDto(
     val muscles: List<Long>,
     val muscles_secondary: List<Long>,
     val equipment: List<Long>
-)
+) {
+    fun matchNameFilter(nameFilter: String?) : Boolean {
+        if(nameFilter == null)
+            return true
+        return name.contains(nameFilter, ignoreCase = true)
+    }
+}
