@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo
+package pl.piotrgorny.gymondo.ui.fragment
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -11,14 +11,19 @@ import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import pl.piotrgorny.gymondo.*
 import pl.piotrgorny.gymondo.data.dto.CategoryDto
 import pl.piotrgorny.gymondo.data.dto.EquipmentDto
 import pl.piotrgorny.gymondo.data.dto.MuscleDto
 import pl.piotrgorny.gymondo.databinding.FragmentExercisesListBinding
+import pl.piotrgorny.gymondo.ui.adapters.ExercisesAdapter
+import pl.piotrgorny.gymondo.ui.viewModel.ExercisesListViewModel
+import pl.piotrgorny.gymondo.util.*
 
 
 class ExercisesListFragment : Fragment() {
-    private val eventLiveData = SingleLiveEvent<Event>()
+    private val eventLiveData =
+        SingleLiveEvent<Event>()
 
     private val categories by lazy {
         arguments!!.getParcelableArray(categoriesArg)!!.map { (it as CategoryDto).id to it }.toMap()
@@ -46,25 +51,17 @@ class ExercisesListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val binding = DataBindingUtil.inflate<FragmentExercisesListBinding>(inflater, R.layout.fragment_exercises_list, container, false)
+        val binding = DataBindingUtil.inflate<FragmentExercisesListBinding>(inflater,
+            R.layout.fragment_exercises_list, container, false)
         binding.viewModel = viewModel
-
+        binding.lifecycleOwner = viewLifecycleOwner
         eventLiveData.observe(viewLifecycleOwner) {
-            when(it){
-                is ShowExerciseDetailsEvent ->
-                    findNavController().navigate(R.id.action_exercises_list_dest_to_exercise_dest, ExerciseFragment.args(it.exercise))
-                is ShowApiErrorEvent ->
-                    AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.error_dialog_title)
-                        .setMessage(it.errorText)
-                        .setNeutralButton(R.string.error_dialog_button_title) {
-                                dialog, _ ->
-                                dialog.dismiss()
-                        }
-                        .show()
-            }
+            handleEvent(it)
         }
-        val adapter = ExercisesAdapter(viewLifecycleOwner, eventLiveData)
+        val adapter = ExercisesAdapter(
+            viewLifecycleOwner,
+            eventLiveData
+        )
         binding.exercisesListFragmentExercisesList.adapter = adapter
         binding.exercisesListFragmentExercisesList.layoutManager = LinearLayoutManager(requireContext())
         binding.exercisesListFragmentExercisesList.addItemDecoration(
@@ -78,6 +75,31 @@ class ExercisesListFragment : Fragment() {
         setHasOptionsMenu(true)
 
         return binding.root
+    }
+
+    private fun handleEvent(event: Event){
+        when(event){
+            is ShowExerciseDetailsEvent ->
+                findNavController().navigate(
+                    R.id.action_exercises_list_dest_to_exercise_dest,
+                    ExerciseFragment.args(event.exercise)
+                )
+            is ShowApiErrorEvent ->
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.error_dialog_title)
+                    .setMessage(event.errorText)
+                    .setNeutralButton(R.string.error_dialog_button_title) {
+                            dialog, _ ->
+                        viewModel.invalidateDataSource()
+                        dialog.dismiss()
+                    }
+                    .create()
+                    .show()
+            is LoadingNextPage ->
+                viewModel.progressBarVisible.postValue(true)
+            is FinishedLoadingNextPage ->
+                viewModel.progressBarVisible.postValue(false)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -102,27 +124,31 @@ class ExercisesListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.filter_list -> {
-                val categoriesToFilter = categories.values.map { it.name }.toTypedArray()
-                AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.filter_dialog_title)
-                    .setItems(categoriesToFilter){
-                        dialog, which ->
-                            viewModel.categoryFilter.postValue(categories.values.first { it.name == categoriesToFilter[which] })
-                            dialog.dismiss()
-                    }
-                    .setNeutralButton(R.string.clear_filter_text) {
-                        dialog, _ ->
-                            viewModel.categoryFilter.postValue(null)
-                            dialog.dismiss()
-                    }
-                    .create()
-                    .show()
+                showFilterDialog()
             }
             else -> {
                 return super.onOptionsItemSelected(item)
             }
         }
         return true
+    }
+
+    private fun showFilterDialog(){
+        val categoriesToFilter = categories.values.map { it.name }.toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.filter_dialog_title)
+            .setItems(categoriesToFilter){
+                    dialog, which ->
+                viewModel.categoryFilter.postValue(categories.values.first { it.name == categoriesToFilter[which] })
+                dialog.dismiss()
+            }
+            .setNeutralButton(R.string.clear_filter_text) {
+                    dialog, _ ->
+                viewModel.categoryFilter.postValue(null)
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 
     companion object{

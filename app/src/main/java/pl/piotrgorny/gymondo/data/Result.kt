@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo.data.repository
+package pl.piotrgorny.gymondo.data
 
 sealed class Result<out T : Any> {
 

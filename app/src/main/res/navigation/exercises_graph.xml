@@ -6,7 +6,7 @@
     app:startDestination="@id/initial_data_download_dest">
     <fragment
         android:id="@+id/initial_data_download_dest"
-        android:name="pl.piotrgorny.gymondo.InitialDataDownloadFragment"
+        android:name="pl.piotrgorny.gymondo.ui.fragment.InitialDataDownloadFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_initial_data_download" >
         <action
@@ -15,7 +15,7 @@
     </fragment>
     <fragment
         android:id="@+id/exercises_list_dest"
-        android:name="pl.piotrgorny.gymondo.ExercisesListFragment"
+        android:name="pl.piotrgorny.gymondo.ui.fragment.ExercisesListFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_exercises_list" >
         <action
@@ -33,7 +33,7 @@
     </fragment>
     <fragment
         android:id="@+id/exercise_dest"
-        android:name="pl.piotrgorny.gymondo.ExerciseFragment"
+        android:name="pl.piotrgorny.gymondo.ui.fragment.ExerciseFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_exercise">
         <argument

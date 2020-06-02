@@ -1,9 +1,10 @@
-package pl.piotrgorny.gymondo
+package pl.piotrgorny.gymondo.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
+import pl.piotrgorny.gymondo.R
 import pl.piotrgorny.gymondo.databinding.ItemImageBinding
 
 class ImagesAdapter : RecyclerView.Adapter<ImagesAdapter.ImageViewHolder>() {
@@ -14,12 +15,13 @@ class ImagesAdapter : RecyclerView.Adapter<ImagesAdapter.ImageViewHolder>() {
             notifyDataSetChanged()
         }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ImageViewHolder(
-        DataBindingUtil.inflate(
-            LayoutInflater.from(parent.context),
-            R.layout.item_image, parent, false
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        ImageViewHolder(
+            DataBindingUtil.inflate(
+                LayoutInflater.from(parent.context),
+                R.layout.item_image, parent, false
+            )
         )
-    )
 
     override fun getItemCount(): Int = items.size
 

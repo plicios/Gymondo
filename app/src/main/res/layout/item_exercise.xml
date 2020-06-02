@@ -5,7 +5,7 @@
     <data>
         <variable
             name="viewModel"
-            type="pl.piotrgorny.gymondo.ExerciseViewModel" />
+            type="pl.piotrgorny.gymondo.ui.viewModel.ExerciseViewModel" />
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -60,7 +60,7 @@
             android:id="@+id/item_exercise_equipment"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.joinedEquipment}"
+            android:text="@{viewModel.comaSeparatedEquipment}"
             android:layout_marginStart="10dp"
             app:layout_constraintBaseline_toBaselineOf="@+id/item_exercise_equipment_label"
             app:layout_constraintStart_toEndOf="@id/item_exercise_equipment_label"
@@ -79,7 +79,7 @@
             android:id="@+id/item_exercise_muscles"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.joinedMuscles}"
+            android:text="@{viewModel.comaSeparatedMuscles}"
             android:layout_marginStart="10dp"
             app:layout_constraintTop_toTopOf="@+id/item_exercise_muscles_label"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -95,6 +95,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:srcCompat="@drawable/ic_image"/>
+            tools:src="@drawable/ic_image"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

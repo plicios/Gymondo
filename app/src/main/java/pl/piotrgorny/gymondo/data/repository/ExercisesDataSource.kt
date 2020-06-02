@@ -4,11 +4,10 @@ import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import pl.piotrgorny.gymondo.Event
-import pl.piotrgorny.gymondo.ShowApiErrorEvent
-import pl.piotrgorny.gymondo.SingleLiveEvent
+import pl.piotrgorny.gymondo.GymondoApplication
 import pl.piotrgorny.gymondo.data.dto.*
 import pl.piotrgorny.gymondo.data.model.Exercise
+import pl.piotrgorny.gymondo.util.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
@@ -24,7 +23,7 @@ class ExercisesDataSource(
 
     private val wgerService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://wger.de/api/v2/")
+            .baseUrl(GymondoApplication.apiBaseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(WgerService::class.java)
@@ -70,7 +69,11 @@ class ExercisesDataSource(
             }
         } catch (e: Exception) {
             Timber.e(e)
-            eventLiveData.postValue(ShowApiErrorEvent("Api call was not successful"))
+            eventLiveData.postValue(
+                ShowApiErrorEvent(
+                    "Api call was not successful"
+                )
+            )
             return Pair(listOf(), null)
         }
     }
@@ -86,9 +89,11 @@ class ExercisesDataSource(
     }
 
     override fun loadAfter(params: LoadParams<Int>, callback: LoadCallback<Int, Exercise>) {
+        eventLiveData.postValue(LoadingNextPage())
         GlobalScope.launch {
             val listWithNextPageKey = makeApiCall(params.key, params.requestedLoadSize)
             callback.onResult(listWithNextPageKey.first, listWithNextPageKey.second)
+            eventLiveData.postValue(FinishedLoadingNextPage())
         }
     }
 

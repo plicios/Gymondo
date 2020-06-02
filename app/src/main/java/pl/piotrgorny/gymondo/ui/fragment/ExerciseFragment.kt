@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo
+package pl.piotrgorny.gymondo.ui.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,8 +9,11 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
+import pl.piotrgorny.gymondo.R
 import pl.piotrgorny.gymondo.data.model.Exercise
 import pl.piotrgorny.gymondo.databinding.FragmentExerciseBinding
+import pl.piotrgorny.gymondo.ui.adapters.ImagesAdapter
+import pl.piotrgorny.gymondo.ui.viewModel.ExerciseViewModel
 
 
 class ExerciseFragment : Fragment() {
@@ -24,7 +27,8 @@ class ExerciseFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val binding = DataBindingUtil.inflate<FragmentExerciseBinding>(inflater, R.layout.fragment_exercise, container, false)
+        val binding = DataBindingUtil.inflate<FragmentExerciseBinding>(inflater,
+            R.layout.fragment_exercise, container, false)
         binding.viewModel = viewModel
         val adapter = ImagesAdapter()
         binding.exerciseFragmentImages.adapter = adapter

@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo.data.dto
+package pl.piotrgorny.gymondo.data.repository
 
 data class WgerApiResponse<T>(
     val count: Int,

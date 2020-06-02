@@ -12,4 +12,6 @@
     <string name="clear_filter_text">Clear body part filter</string>
     <string name="error_dialog_title">Error</string>
     <string name="error_dialog_button_title">OK</string>
+    <string name="api_connection_error">Cannot connect to server. Make sure you have internet connection</string>
+    <string name="next_page_loading">Loading next page. Please wait…</string>
 </resources>

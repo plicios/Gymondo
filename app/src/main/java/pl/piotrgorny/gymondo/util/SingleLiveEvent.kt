@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo
+package pl.piotrgorny.gymondo.util
 
 import androidx.annotation.MainThread
 import androidx.annotation.Nullable

@@ -1,4 +1,4 @@
-package pl.piotrgorny.gymondo
+package pl.piotrgorny.gymondo.ui.bindings
 
 import android.text.Html
 import android.widget.TextView

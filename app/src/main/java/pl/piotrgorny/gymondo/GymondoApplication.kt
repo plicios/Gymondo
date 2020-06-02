@@ -10,4 +10,8 @@ class GymondoApplication : Application() {
             Timber.plant(Timber.DebugTree())
         }
     }
+
+    companion object{
+        const val apiBaseUrl = "https://wger.de/api/v2/"
+    }
 }
